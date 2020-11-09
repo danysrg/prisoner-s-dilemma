@@ -43,24 +43,23 @@ class OpponentStrategy:
             return cls.tit_for_tat(moves)
 
 
-def my_strategy(moves, epsilon=0.2):
+def my_strategy(moves, epsilon=0.05):
     # Initialize by trying different things
     if moves is None:
-        return C
+        return D
 
-    if len(moves) <= 10:
-        if len(moves) % 2 == 0:
-            return C
-        else:
-            return D
+
+    if len(moves) <= 5:
+        return choice([C, D])
 
     if random() < epsilon:
         return choice([C, D])
-    proba_play_next = compute_reaction_probability(moves)
-    # print(proba_play_next)
 
-    scores_per_action = compute_action_score(moves)
-    if scores_per_action[C] >= scores_per_action[D]:
+    proba_play_next = compute_reaction_probability(moves)
+    proba_will_c_if_c = proba_play_next[C][C]
+    proba_will_d_if_d = proba_play_next[D][D]
+
+    if (random() <= proba_will_c_if_c) and (random() <= proba_will_d_if_d):
         return C
     return D
 
@@ -79,20 +78,10 @@ def compute_reaction_probability(moves):
 
 
 def normalize_proba(played_after):
+    if (played_after[C] + played_after[D]) == 0:
+        return
     played_after[C] = played_after[C] / (played_after[C] + played_after[D])
     played_after[D] = 1 - played_after[C]
-
-
-def compute_action_score(moves):
-    scores = {C: 0, D: 0}
-    counts = {C: 0, D: 0}
-    for move in moves:
-        scores[move[0]] += rewards[move]
-        counts[move[0]] += 1
-
-    scores[C] = scores[C]/counts[C]
-    scores[D] = scores[D] / counts[D]
-    return scores
 
 
 def compute_overall_reward(moves):
@@ -105,6 +94,7 @@ def compute_overall_reward(moves):
 if __name__ == "__main__":
     NUM_GAME = 5
     STRATEGIES = ["tit_for_tat", "always_c", "always_d", "random"]
+
     strat_scores = []
     for strategy_name in STRATEGIES:
         scores = []
@@ -116,9 +106,7 @@ if __name__ == "__main__":
                 my_move = my_strategy(moves)
                 their_move = OpponentStrategy.strategy(strategy_name, moves)
                 moves.append((my_move, their_move))
-                # print(moves[-1])
             current_game_score = compute_overall_reward(moves)
-
             scores.append(current_game_score/num_iteration)
             strat_scores.append(current_game_score/num_iteration)
 
