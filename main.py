@@ -45,13 +45,10 @@ class OpponentStrategy:
 
 def my_strategy(moves, epsilon=0.05):
     # Initialize by trying different things
-    if moves is None:
-        return D
-
-
-    if len(moves) <= 5:
+    if moves is None or len(moves) <= 5:
         return choice([C, D])
 
+    # exploration
     if random() < epsilon:
         return choice([C, D])
 
